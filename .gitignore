@@ -1,3 +1,10 @@
+# internal database files
+*.json
+*.csv
+
+# PyCharm
+.idea
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -52,3 +59,6 @@ docs/_build/
 
 # PyBuilder
 target/
+.pyc
+.pyo
+.json

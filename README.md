@@ -1,4 +1,6 @@
 filewatcher
 ===========
 
-Utility filewatcher for Merel.cz
+Utility filewatcher for Merel.cz.
+
+filewatcher --help
