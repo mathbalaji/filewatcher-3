@@ -1,0 +1,65 @@
+Issues with directories, files named with diacritic characters (on Windows):
+
+C:\Python27\SW>filewatch.py init -d d:\!FirmaProjekty-KAREL\!Akce
+2014-07-22 17:04:05,072 DEBUG    Logger instance initialised.
+2014-07-22 17:04:05,072 INFO     Processing command line arguments ...
+2014-07-22 17:04:05,072 INFO     Option --config not specified, trying to load '
+filewatch.conf' from the directory 'C:\Python27\SW' ...
+2014-07-22 17:04:05,072 INFO     File 'C:\Python27\SW\filewatch.conf' exists.
+2014-07-22 17:04:05,072 INFO     Option --database not specified, using 'd:\!Fir
+maProjekty-KAREL\!Akce\filewatch-db.json'.
+2014-07-22 17:04:05,072 INFO     Processing config file 'C:\Python27\SW\filewatc
+h.conf' ...
+2014-07-22 17:04:05,082 DEBUG    Configuration values:
+{'watched_dir': 'd:\\!FirmaProjekty-KAREL\\!Akce', 'watch_masks': ['*.sch', '*.s
+plcsln'], 'database': 'd:\\!FirmaProjekty-KAREL\\!Akce\\filewatch-db.json', 'ign
+ore_list': ['/tmp/ignorable file1', '/tmp/ignorablefile2'], 'action': 'init', 'c
+onfig_file': 'C:\\Python27\\SW\\filewatch.conf'}
+2014-07-22 17:04:05,082 INFO     Performing initialization ...
+2014-07-22 17:04:05,082 INFO     Processing 'd:\!FirmaProjekty-KAREL\!Akce' dire
+ctory ...
+2014-07-22 17:04:05,082 WARNING  Database file 'd:\!FirmaProjekty-KAREL\!Akce\fi
+lewatch-db.json' exists, backupped.
+Traceback (most recent call last):
+  File "C:\Python27\SW\filewatch.py", line 280, in <module>
+    main()
+  File "C:\Python27\SW\filewatch.py", line 273, in main
+    ret_val = getattr(watcher, config.action)()
+  File "C:\Python27\SW\filewatch.py", line 203, in init
+    json.dump(data, db_file_fp)
+  File "C:\Python27\lib\json\__init__.py", line 189, in dump
+    for chunk in iterable:
+  File "C:\Python27\lib\json\encoder.py", line 434, in _iterencode
+    for chunk in _iterencode_dict(o, _current_indent_level):
+  File "C:\Python27\lib\json\encoder.py", line 387, in _iterencode_dict
+    yield _encoder(key)
+UnicodeDecodeError: 'utf8' codec can't decode byte 0xe1 in position 66: invalid
+continuation byte
+
+C:\Python27\SW>filewatch.py init -d d:\!FirmaProjekty-KAREL\!Akce\080_Okula_Lako
+vna
+2014-07-22 17:04:20,905 DEBUG    Logger instance initialised.
+2014-07-22 17:04:20,905 INFO     Processing command line arguments ...
+2014-07-22 17:04:20,915 INFO     Option --config not specified, trying to load '
+filewatch.conf' from the directory 'C:\Python27\SW' ...
+2014-07-22 17:04:20,915 INFO     File 'C:\Python27\SW\filewatch.conf' exists.
+2014-07-22 17:04:20,915 INFO     Option --database not specified, using 'd:\!Fir
+maProjekty-KAREL\!Akce\080_Okula_Lakovna\filewatch-db.json'.
+2014-07-22 17:04:20,915 INFO     Processing config file 'C:\Python27\SW\filewatc
+h.conf' ...
+2014-07-22 17:04:20,915 DEBUG    Configuration values:
+{'watched_dir': 'd:\\!FirmaProjekty-KAREL\\!Akce\\080_Okula_Lakovna', 'watch_mas
+ks': ['*.sch', '*.splcsln'], 'database': 'd:\\!FirmaProjekty-KAREL\\!Akce\\080_O
+kula_Lakovna\\filewatch-db.json', 'ignore_list': ['/tmp/ignorable file1', '/tmp/
+ignorablefile2'], 'action': 'init', 'config_file': 'C:\\Python27\\SW\\filewatch.
+conf'}
+2014-07-22 17:04:20,915 INFO     Performing initialization ...
+2014-07-22 17:04:20,915 INFO     Processing 'd:\!FirmaProjekty-KAREL\!Akce\080_O
+kula_Lakovna' directory ...
+2014-07-22 17:04:20,915 WARNING  Database file 'd:\!FirmaProjekty-KAREL\!Akce\08
+0_Okula_Lakovna\filewatch-db.json' exists, backupped.
+2014-07-22 17:04:20,956 INFO     Finished, database file written: 'd:\!FirmaProj
+ekty-KAREL\!Akce\080_Okula_Lakovna\filewatch-db.json'
+2014-07-22 17:04:20,956 INFO     Finished.
+
+C:\Python27\SW>

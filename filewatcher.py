@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Filewatcher.
 
@@ -26,11 +28,14 @@ author: Zdenek Maxa
 
 
 TODO:
--GUI window listing files watched over
--with GUI, automatic database file update can be instructed
 -pyxmaxlibs proper dependency integration (pyxmaxlibs needs to be deployable)
 -do logging as log ... yet configurable format ... (no self ...)
--do via CSV (with header) database format
+
+UnicodeDecodeError: 'utf8' codec can't decode byte 0xe1 in position 66: invalid
+continuation byte
+diacritics in directory / file names issue (full path file names are used
+    as JSON / python dictionary keys) and JSON en/decoder doesn't like that
+Should be solved.
 
 """
 
@@ -80,7 +85,7 @@ def process_config_file(config, logger):
         for (name, value) in parser.items("general"):
             # assumes that ',' is the separator of configuration values
             values = value.split(',')
-            # trimm white spaces
+            # trim white spaces
             val_trimmed = [val.strip() for val in values]
             # entry will always be a list
             setattr(config, name, val_trimmed)
@@ -127,8 +132,7 @@ def process_cli_args(cli_args, logger):
     opts, args = parser.parse_args(cli_args)
     # first argument is application's name, second option should be action
     if len(args) != 2 or args[1] not in ("init", "check"):
-        msg = ("None, wrong or more than allowed arguments specified, "
-               "try --help")
+        msg = ("None, wrong or more than allowed arguments specified, try --help")
         helpers.print_msg_exit(msg=msg, exit_code=1)
     else:
         opts.action = args[1]
@@ -146,12 +150,10 @@ def process_cli_args(cli_args, logger):
             logger.info("No configuration file will be loaded.")
     if not opts.watched_dir:
         opts.watched_dir = os.getcwd()
-        logger.info("Option --directory not specified, working in '%s'." %
-                    opts.watched_dir)
+        logger.info("Option --directory not specified, working in '%s'." % opts.watched_dir)
     if not opts.database:
         opts.database = os.path.join(opts.watched_dir, DATABASE_FILE)
-        logger.info("Option --database not specified, using '%s'." %
-                    opts.database)
+        logger.info("Option --database not specified, using '%s'." % opts.database)
     return opts
 
 
@@ -170,27 +172,28 @@ class FileWatcher(object):
         self._removed = []
         self._added = []
 
-
     def init(self):
         """
         List all files in the watched directory conforming the file masks,
         excluding files in the ignore list and generate internal database
         file listing all those files and their last modification timestamp.
 
+        Note: even if *.json is to be tracked, the currently used db file
+        will never make into itself (into the db file) since in the time
+        scanning the working directory it doens't exist there.
+
         """
         self.logger.info("Performing initialization ...")
-        self.logger.info("Processing '%s' directory ..." %
-                          self.config.watched_dir)
+        self.logger.info("Processing '%s' directory ..." % self.config.watched_dir)
         db_file = self.config.database
         if os.path.exists(db_file):
             os.rename(db_file, db_file + ".backup." + str(time.time()))
-            self.logger.warn("Database file '%s' exists, backupped." %
-                             db_file)
+            self.logger.warn("Database file '%s' exists, backup file created." % db_file)
         # returns full file paths
         file_names = helpers.get_files(path=self.config.watched_dir,
                                        file_mask=self.config.watch_masks,
                                        recursive=True)
-        # result data dictionary (dictonary of dictionaries):
+        # result data dictionary (dictionary of dictionaries):
         #   file_path: {last_modif: <value>, last_modif_human: <value>}
         data = {}
         for name in file_names:
@@ -198,26 +201,20 @@ class FileWatcher(object):
                 continue
             dt = os.path.getmtime(name)
             human = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(dt))
-            data[name] = dict(last_modif=dt, last_modif_human=human)
+            name_encoded = unicode(name, "utf-8")
+            data[name_encoded] = dict(last_modif=dt, last_modif_human=human)
         # store resulting data into JSON file
-        self.logger.info("Storing timestamp info about %s files ..." %
-                len(data))
-        f = open("tempfiledata.txt", 'w')
-
-        TODO TODO TODO ...
-
-        f.write(str(data))
-        f.close()
+        self.logger.info("Storing timestamp info about %s files ..." % len(data))
         try:
             db_file_fp = open(db_file, 'w')
             json.dump(data, db_file_fp)
             db_file_fp.close()
-            self.logger.info("Finished, database file written: '%s'" %
-                             db_file)
+            self.logger.info("Finished, database file written: '%s'" % db_file)
         except IOError, ex:
-            self.logger.error("Could not write data into '%s', reason: %s'" %
-                              (db_file, ex))
-
+            self.logger.error("Could not write data into '%s', reason: %s'" % (db_file, ex))
+            return 1
+        else:
+            return 0
 
     def check(self):
         """
@@ -226,8 +223,7 @@ class FileWatcher(object):
         Newly added files and removed files are detected and reported.
 
         """
-        self.logger.info("Performing check ... (database file: '%s')" %
-                         self.config.database)
+        self.logger.info("Performing check ... (database file: '%s')" % self.config.database)
         # read the database file
         try:
             f = open(self.config.database)
@@ -254,10 +250,11 @@ class FileWatcher(object):
         for file_name in curr_file_names:
             if file_name in self.config.ignore_list:
                 continue
-            if file_name not in data.keys():
+            encoded_file_name = unicode(file_name, "utf-8")
+            if encoded_file_name not in data.keys():
                 self._added.append(file_name)
         self.summarize()
-
+        return 0
 
     def summarize(self):
         def printer(title, whats):
@@ -266,7 +263,7 @@ class FileWatcher(object):
                 print "    %s" % what
             print "\n"
 
-        print "\n", 80 * '='
+        print "\n\n", 80 * '='
         print "Summary:\n"
         printer("Removed:", self._removed)
         printer("New:", self._added)
@@ -282,8 +279,7 @@ def main():
     watcher = FileWatcher(config, logger)
     ret_val = getattr(watcher, config.action)()
     logger.info("Finished.")
-    if ret_val:
-        sys.exit(ret_val)
+    sys.exit(ret_val)
 
 
 if __name__ == "__main__":
